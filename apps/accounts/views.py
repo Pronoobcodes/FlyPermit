@@ -2,7 +2,7 @@ from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from rest_framework.generics import CreateAPIView, GenericAPIView
+from rest_framework.generics import CreateAPIView, GenericAPIView, ValidationError
 from rest_framework_simplejwt.tokens import RefreshToken
 from drf_spectacular.utils import extend_schema
 
@@ -20,6 +20,10 @@ class UserRegistrationView(CreateAPIView):
         responses={201: UserRegistrationSerializer},
     )
     def create(self, request, *args, **kwargs):
+        if request.user.is_authenticated:
+            raise ValidationError(
+                "You are already logged in."
+            )
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
@@ -41,6 +45,10 @@ class UserLoginView(GenericAPIView):
         responses={200: UserLoginSerializer},
     )
     def post(self, request, *args, **kwargs):
+        if request.user.is_authenticated:
+            raise ValidationError(
+                "You are already logged in."
+            )
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data['user']
