@@ -5,7 +5,7 @@ from .models import Country, VisaType, DocumentRequirement
 class DocumentRequirementSerializer(serializers.ModelSerializer):
     class Meta:
         model = DocumentRequirement
-        fields = ['id', 'name', 'description', 'importance', 'condition_note', 'order']
+        fields = ['id', 'name', 'description', 'icon_category', 'importance', 'condition_note', 'sample_description', 'official_source_url', 'last_verified', 'order']
 
 
 class VisaTypeListSerializer(serializers.ModelSerializer):
@@ -22,7 +22,7 @@ class VisaTypeDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = VisaType
-        fields = ["id", "name", "country", "category", "processing_time", "fee_usd", "vitality", "description", "is_active", "document_requirements"]
+        fields = ["id", "name", "country", "category", "processing_time", "fee_usd", "validity", "description", "is_active", "document_requirements"]
 
 
 class CountryListSerializer(serializers.ModelSerializer):

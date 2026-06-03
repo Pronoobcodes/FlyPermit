@@ -48,17 +48,32 @@ class DocumentRequirement(models.Model):
     IMPORTANCE_CHOICES = [
         ('mandatory', 'Mandatory'),
         ('optional', 'Optional'),
-        ('conditional', 'Conditional'),  # e.g. only if self-employed
+        ('conditional', 'Conditional'),
     ]
 
-    visa_type = models.ForeignKey(
-        VisaType, on_delete=models.CASCADE, related_name='document_requirements'
-    )
-    name = models.CharField(max_length=200)           # e.g. "International Passport"
-    description = models.TextField(blank=True)        # extra guidance
+    ICON_CATEGORY_CHOICES = [
+        ('passport', 'Passport'),
+        ('photo', 'Photograph'),
+        ('financial', 'Financial Document'),
+        ('employment', 'Employment Document'),
+        ('accommodation', 'Accommodation Proof'),
+        ('travel', 'Travel History'),
+        ('medical', 'Medical Document'),
+        ('educational', 'Educational Certificate'),
+        ('other', 'Other'),
+    ]
+
+    visa_type = models.ForeignKey(VisaType, on_delete=models.CASCADE, related_name='document_requirements')
+    name = models.CharField(max_length=200)
+    description = models.TextField(blank=True)
+    icon_category = models.CharField(max_length=50, choices=ICON_CATEGORY_CHOICES, default='other')
     importance = models.CharField(max_length=20, choices=IMPORTANCE_CHOICES, default='mandatory')
-    condition_note = models.CharField(max_length=255, blank=True)  # e.g. "Required if self-employed"
-    order = models.PositiveIntegerField(default=0)    # controls display order
+    condition_note = models.CharField(max_length=255, blank=True)
+    # sample_image = models.URLField(blank=True)         # link to example image
+    sample_description = models.TextField(blank=True)  # plain English what it should contain
+    official_source_url = models.URLField(blank=True)  # link to embassy/official page
+    order = models.PositiveIntegerField(default=0)
+    last_verified = models.DateField(null=True, blank=True)
 
     class Meta:
         ordering = ['order', 'name']
