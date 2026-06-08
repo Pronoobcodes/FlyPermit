@@ -1,6 +1,6 @@
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
-from apps.visas.filter import VisaTypeFilter
+from .filter import VisaTypeFilter
 from .models import Country, VisaType, DocumentRequirement
 from .serializers import CountryListSerializer, CountryDetailSerializer, VisaTypeListSerializer, VisaTypeDetailSerializer, DocumentRequirementSerializer
 from django_filters.rest_framework import DjangoFilterBackend

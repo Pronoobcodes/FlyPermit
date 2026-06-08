@@ -1,6 +1,6 @@
 from django.db import models
 from django.conf import settings
-from visas.models import VisaType, DocumentRequirement
+from apps.visas.models import VisaType, DocumentRequirement
 
 
 class UserChecklist(models.Model):
