@@ -1,92 +1,55 @@
 # Visa Checklist
 
-A Django REST API for tracking visa requirements and document checklists for international travel, with a focus on the unique challenges faced by Nigerian travelers.
+A Django REST API for tracking visa requirements, document checklists, and travel readiness for international destinations. This project is built with a focus on Nigerian travellers who need clear visa guidance and organized document tracking.
 
-## Project Purpose
+## Overview
 
-Many Nigerians face complex visa rules, inconsistent embassy requirements, and a lack of centralized guidance when planning international travel. This project captures visa categories, country-specific documentation, and user-managed checklists so travelers can prepare, stay organized, and reduce application delays.
+Visa Checklist stores country-specific visa types, document requirements, and user-managed checklists. It exposes a REST API for both public visa data browsing and authenticated checklist management.
 
-## What this project does
+## Key Features
 
-- Stores visa categories for countries and travel purposes.
-- Stores document requirements for each visa type.
-- Provides authenticated user accounts with JWT login and registration.
-- Creates user-specific visa checklists so travelers can track documents they already have and those still needed.
-- Exposes API schema documentation via Swagger and Redoc.
+- Country and visa type catalog
+- Document requirement records for each visa
+- JWT-based user registration and login
+- Personal visa checklist creation and tracking
+- API documentation via Swagger and Redoc
+- Data seeding command for visa data population
 
-## Why it helps Nigerian travelers
+## Project Structure
 
-Traveling from Nigeria often means navigating:
+- `config/` — Django settings, URL routing, ASGI/WGI entrypoints
+- `apps/accounts/` — authentication, registration, JWT login/logout
+- `apps/visas/` — models and API for countries, visa types, and documents
+- `apps/checklists/` — user checklists, checklist items, and permissions
+- `apps/visas/management/commands/populate_visas.py` — seed command
+- `pyproject.toml` — dependency definitions
 
-- multiple embassy requirements that change frequently
-- unclear supporting document expectations
-- long visa processing windows and expensive application fees
-- difficulty tracking progress through document collection and submission
+## Requirements
 
-This project provides a digital checklist and visa-type catalog so travelers can make preparation more transparent and manageable.
+- Python 3.12+
+- PostgreSQL or other supported Django database
+- `uv` dependency manager
+- Virtual environment (`.venv` recommended)
 
-## Key features
+## Setup
 
-- User registration and JWT authentication
-- Read-only visa country, visa type, and document requirement APIs
-- Personal visa checklists with item tracking
-- Convenient documentation endpoints for API exploration
-- Designed for easy extension with new countries and visa rule updates
-
-## Project structure
-
-- `config/` - Django project settings, URL routing, ASGI/WGI entrypoints
-- `apps/accounts/` - user model, registration/login/logout, serializers, URLs
-- `apps/visas/` - country, visa type, and document requirement models and read-only API views
-- `apps/checklists/` - user checklists, checklist items, permissions, and service helpers
-- `pyproject.toml` / `uv.lock` - dependency management with `uv`
-
-## API endpoints
-
-Authentication:
-
-- `POST /api/accounts/register/` - create a new user
-- `POST /api/accounts/login/` - obtain JWT access and refresh tokens
-- `POST /api/accounts/logout/` - logout the current user
-
-Visa catalog:
-
-- `GET /api/visas/countries/`
-- `GET /api/visas/countries/{id}/`
-- `GET /api/visas/visas/`
-- `GET /api/visas/visas/{id}/`
-- `GET /api/visas/documents/`
-- `GET /api/visas/documents/{id}/`
-
-Checklist management:
-
-- `GET /api/checklists/user-checklists/`
-- `POST /api/checklists/user-checklists/`
-- `GET /api/checklists/user-checklists/{id}/`
-- `PATCH /api/checklists/user-checklists/{id}/`
-- `DELETE /api/checklists/user-checklists/{id}/`
-- `GET /api/checklists/checklist-items/`
-- `PATCH /api/checklists/checklist-items/{id}/`
-
-Documentation:
-
-- `GET /api/schema/`
-- `GET /api/schema/swagger-ui/`
-- `GET /api/schema/redoc/`
-
-## Getting started
-
-1. Clone the repository.
-2. Create or activate the project virtual environment.
-3. Install and sync dependencies with `uv`.
+### 1. Activate the virtual environment
 
 ```powershell
 cd c:\Users\Administrator\Documents\visa_checklist
-.venv\Scripts\python.exe -m pip install uv
+.venv\Scripts\Activate.ps1
+```
+
+### 2. Install dependencies
+
+```powershell
+.venv\Scripts\python.exe -m pip install --upgrade pip uv
 .venv\Scripts\python.exe -m uv sync
 ```
 
-4. Create a `.env` file with database configuration. Example:
+### 3. Configure environment variables
+
+Create a `.env` file in the project root with your database settings. Example:
 
 ```env
 DB_NAME=visa_checklist
@@ -96,37 +59,73 @@ DB_HOST=localhost
 DB_PORT=5432
 ```
 
-5. Run Django migrations:
+### 4. Run database migrations
 
 ```powershell
 .venv\Scripts\python.exe manage.py migrate
 ```
 
-6. Start the application with Uvicorn:
+### 5. Populate visa data
+
+```powershell
+.venv\Scripts\python.exe manage.py populate_visas
+```
+
+### 6. Start the development server
 
 ```powershell
 .venv\Scripts\python.exe -m uv run uvicorn config.asgi:application --reload
 ```
 
-## Authentication notes
+## API Endpoints
 
-Visa catalog endpoints are available to anonymous users so travelers can browse countries, visa types, and document requirements without logging in.
+### Authentication
 
-Checklist creation and updates require a valid JWT access token. Include the token in requests with:
+- `POST /api/accounts/register/`
+- `POST /api/accounts/login/`
+- `POST /api/accounts/logout/`
+- `POST /api/token/`
+- `POST /api/token/refresh/`
 
-```http
-Authorization: Bearer <access_token>
-```
+### Visa Catalog
 
-## Extending the app
+- `GET /api/visas/countries/`
+- `GET /api/visas/countries/{id}/`
+- `GET /api/visas/visas/`
+- `GET /api/visas/visas/{id}/`
+- `GET /api/visas/documents/`
+- `GET /api/visas/documents/{id}/`
 
-- Add new `Country`, `VisaType`, and `DocumentRequirement` records through Django admin or seed scripts.
-- Extend the API with write actions if needed.
-- Add more checklist fields such as embassy appointment dates, fee tracking, or application status.
+### Checklist Management
 
-## Why this matters
+- `GET /api/checklists/user-checklists/`
+- `POST /api/checklists/user-checklists/`
+- `GET /api/checklists/user-checklists/{id}/`
+- `PATCH /api/checklists/user-checklists/{id}/`
+- `DELETE /api/checklists/user-checklists/{id}/`
+- `GET /api/checklists/checklist-items/`
+- `PATCH /api/checklists/checklist-items/{id}/`
 
-This service is built to support Nigerian travelers by turning scattered visa requirements into one organized digital checklist. The goal is to help reduce uncertainty, prevent missing documents, and make travel preparation easier for people who need clear, reliable guidance.
+### Documentation
+
+- `GET /api/schema/`
+- `GET /api/schema/swagger-ui/`
+- `GET /api/schema/redoc/`
+
+## Seed Data
+
+The command `manage.py populate_visas` loads visa country, visa type, and document requirement data into the database. This command was tested successfully and is designed to be rerun safely after migrations.
+
+## Notes
+
+- Anonymous users can view visa catalog data.
+- Checklist creation and editing require JWT authentication.
+- Always run `manage.py migrate` before populating data.
+- `uv` manages Python dependencies and also runs the development server in this project.
+
+## Will the code work as expected?
+
+Yes. The project runs correctly with a proper virtual environment, database configuration, and migrations applied. The `populate_visas` command has been tested and populates the database successfully.
 
 ## License
 
