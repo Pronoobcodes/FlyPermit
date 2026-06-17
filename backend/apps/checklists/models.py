@@ -26,10 +26,12 @@ class UserChecklist(models.Model):
 
     @property
     def completion_percentage(self):
+        if 'completion_percentage' in self.__dict__ and self.__dict__['completion_percentage'] is not None:
+            return round(self.__dict__['completion_percentage'])
         items = self.items.all()
         if not items.exists():
             return 0
-        completed = items.filter(is_done=True).count()
+        completed = items.filter(status='have_it').count()
         return round((completed / items.count()) * 100)
 
 

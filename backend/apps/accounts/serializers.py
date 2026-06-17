@@ -52,5 +52,24 @@ class UserLoginSerializer(serializers.Serializer):
         return attrs
 
 
+from rest_framework_simplejwt.tokens import RefreshToken
+
 class UserLogoutSerializer(serializers.Serializer):
-    pass
+    refresh = serializers.CharField(required=True)
+
+    def validate(self, attrs):
+        self.token = attrs['refresh']
+        return attrs
+
+    def save(self, **kwargs):
+        try:
+            RefreshToken(self.token).blacklist()
+        except Exception as e:
+            raise serializers.ValidationError({"refresh": "Invalid or expired token."})
+
+
+class UserProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'email', 'username', 'first_name', 'last_name', 'nationality', 'phone', 'date_joined']
+        read_only_fields = ['id', 'email', 'date_joined']

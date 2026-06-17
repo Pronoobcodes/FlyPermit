@@ -1,7 +1,9 @@
-from rest_framework import status, viewsets
+from rest_framework import status, viewsets, mixins
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.permissions import IsAuthenticated
 from django.utils import timezone
+from django.db.models import Count, Q, Case, When, Value, FloatField
+from django.db.models.functions import Cast
 
 from .models import UserChecklist, ChecklistItem
 from .serializers import UserChecklistSerializer, ChecklistItemSerializer
@@ -11,36 +13,101 @@ from .services import create_checklist_items
 
 class UserChecklistViewSet(viewsets.ModelViewSet):
     serializer_class = UserChecklistSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly, IsChecklistOwner]
+    permission_classes = [IsAuthenticated, IsChecklistOwner]
 
     def get_queryset(self):
-        if not self.request.user.is_authenticated:
-            return UserChecklist.objects.none()
-        return UserChecklist.objects.filter(user=self.request.user).select_related('visa_type').prefetch_related('items', 'items__document')
+        total_count = Count('items')
+        completed_count = Count('items', filter=Q(items__status='have_it'))
+        return UserChecklist.objects.filter(user=self.request.user).annotate(
+            total_items=total_count,
+            completed_items=completed_count
+        ).annotate(
+            completion_percentage=Case(
+                When(total_items=0, then=Value(0.0)),
+                default=Cast('completed_items', FloatField()) / Cast('total_items', FloatField()) * 100,
+                output_field=FloatField()
+            )
+        ).select_related('visa_type').prefetch_related('items', 'items__document')
 
     def perform_create(self, serializer):
         checklist = serializer.save(user=self.request.user)
         create_checklist_items(checklist)
 
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        # Fetch the created checklist with annotated completion percentage
+        checklist = self.get_queryset().get(id=serializer.data['id'])
+        response_serializer = self.get_serializer(checklist)
+        return Response({
+            'success': True,
+            'message': 'Checklist created successfully.',
+            'data': response_serializer.data
+        }, status=status.HTTP_201_CREATED, headers=headers)
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        return Response({
+            'success': True,
+            'message': 'Checklist retrieved successfully.',
+            'data': serializer.data
+        })
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response({
+            'success': True,
+            'message': 'Checklists retrieved successfully.',
+            'data': serializer.data
+        })
+
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response({
+            'success': True,
+            'message': 'Checklist updated successfully.',
+            'data': serializer.data
+        })
+
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
-        self.perform_destroy(instance)
-        return Response(status=status.HTTP_204_NO_CONTENT)
-    
+        instance.delete()
+        return Response({
+            'success': True,
+            'message': 'Checklist deleted successfully.'
+        }, status=status.HTTP_200_OK)
 
-class ChecklistItemViewSet(viewsets.ModelViewSet):
+
+class ChecklistItemViewSet(mixins.ListModelMixin,
+                           mixins.RetrieveModelMixin,
+                           mixins.UpdateModelMixin,
+                           viewsets.GenericViewSet):
     serializer_class = ChecklistItemSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly, IsChecklistOwner]
+    permission_classes = [IsAuthenticated, IsChecklistOwner]
 
     def get_queryset(self):
-        if not self.request.user.is_authenticated:
-            return ChecklistItem.objects.none()
         return ChecklistItem.objects.filter(checklist__user=self.request.user).select_related('document', 'checklist')
 
     def perform_update(self, serializer):
         instance = serializer.save()
         if instance.status == 'have_it' and not instance.marked_done_at:
             instance.marked_done_at = timezone.now()
+            instance.save()
+        elif instance.status != 'have_it' and instance.marked_done_at:
+            instance.marked_done_at = None
             instance.save()
 
     def update(self, request, *args, **kwargs):
@@ -49,5 +116,31 @@ class ChecklistItemViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(instance, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
+        return Response({
+            'success': True,
+            'message': 'Checklist item updated successfully.',
+            'data': serializer.data
+        })
 
-        return Response(serializer.data)
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        return Response({
+            'success': True,
+            'message': 'Checklist item retrieved successfully.',
+            'data': serializer.data
+        })
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response({
+            'success': True,
+            'message': 'Checklist items retrieved successfully.',
+            'data': serializer.data
+        })
