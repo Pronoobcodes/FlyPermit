@@ -10,7 +10,8 @@ from .serializers import (
     UserRegistrationSerializer, 
     UserLoginSerializer, 
     UserLogoutSerializer, 
-    UserProfileSerializer
+    UserProfileSerializer,
+    ChangePasswordSerializer
 )
 
 
@@ -118,5 +119,25 @@ class UserProfileView(GenericAPIView):
             'message': 'Profile updated successfully.',
             'data': serializer.data
         }, status=status.HTTP_200_OK)
+class ChangePasswordView(GenericAPIView):
+    serializer_class = ChangePasswordSerializer
+    permission_classes = [IsAuthenticated]
 
-
+    @extend_schema(
+        summary="Change Password",
+        description="Change the authenticated user's password",
+        request=ChangePasswordSerializer,
+        responses={200: dict},
+    )
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = request.user
+        if not user.check_password(serializer.validated_data['current_password']):
+            return Response({'success': False, 'message': 'Incorrect current password.'}, status=400)
+        user.set_password(serializer.validated_data['new_password'])
+        user.save()
+        return Response({
+            'success': True,
+            'message': 'Password updated successfully.'
+        }, status=status.HTTP_200_OK)

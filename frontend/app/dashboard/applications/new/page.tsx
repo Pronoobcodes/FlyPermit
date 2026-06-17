@@ -27,9 +27,11 @@ export default function NewApplicationFlow() {
     try {
       const response: any = await api.get("/visas/countries/");
       if (response.success) {
-        setCountries(response.data); // Assuming pagination might not be active, or we handle it if needed
+        const data = response.data?.results ?? response.data ?? [];
+        setCountries(Array.isArray(data) ? data : []);
       }
     } catch (err) {
+      console.error("Countries response error:", err);
       setError("Failed to load countries");
     } finally {
       setIsLoading(false);
@@ -41,9 +43,11 @@ export default function NewApplicationFlow() {
     try {
       const response: any = await api.get(`/visas/?country=${countryId}`);
       if (response.success) {
-        setVisaTypes(response.data);
+        const data = response.data?.results ?? response.data ?? [];
+        setVisaTypes(Array.isArray(data) ? data : []);
       }
     } catch (err) {
+      console.error("Visa Types response error:", err);
       setError("Failed to load visa types");
     } finally {
       setIsLoading(false);
@@ -63,7 +67,7 @@ export default function NewApplicationFlow() {
     setError("");
     try {
       const response: any = await api.post("/checklists/user-checklists/", {
-        visa_type: selectedVisaType,
+        visa_type_id: selectedVisaType,
       });
       if (response.success) {
         router.push(`/dashboard/applications/${response.data.id}`);

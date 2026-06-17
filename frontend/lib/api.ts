@@ -15,7 +15,12 @@ api.interceptors.response.use(
   },
   (error) => {
     // If the error response exists, return it formatted, otherwise a generic error
-    if (error.response && error.response.data) {
+    if (error.response) {
+      if (error.response.status === 401) {
+        if (typeof window !== "undefined" && window.location.pathname !== "/login" && window.location.pathname !== "/register") {
+          window.location.href = "/login";
+        }
+      }
       return Promise.reject(error.response.data);
     }
     return Promise.reject({

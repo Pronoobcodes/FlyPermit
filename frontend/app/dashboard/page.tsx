@@ -8,6 +8,7 @@ import { ProgressBar } from "@/components/ui/progress-bar";
 import { FileText, Clock, CheckCircle2, AlertCircle } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { statusConfig } from "@/lib/statusConfig";
 
 export default function DashboardOverview() {
   const [checklists, setChecklists] = useState<any[]>([]);
@@ -18,7 +19,8 @@ export default function DashboardOverview() {
       try {
         const response: any = await api.get("/checklists/user-checklists/");
         if (response.success) {
-          setChecklists(response.data);
+          const fetchedData = response.data?.results ?? response.data ?? [];
+          setChecklists(Array.isArray(fetchedData) ? fetchedData : []);
         }
       } catch (error) {
         console.error("Failed to fetch checklists:", error);
@@ -38,8 +40,9 @@ export default function DashboardOverview() {
     );
   }
 
-  const activeChecklists = checklists.filter(c => c.status !== "COMPLETED");
-  const completedChecklists = checklists.filter(c => c.status === "COMPLETED");
+  const safeChecklists = Array.isArray(checklists) ? checklists : [];
+  const activeChecklists = safeChecklists.filter(c => c.status !== "completed");
+  const completedChecklists = safeChecklists.filter(c => c.status === "completed");
 
   return (
     <div className="space-y-6">
@@ -58,7 +61,7 @@ export default function DashboardOverview() {
             </div>
             <div>
               <p className="text-sm font-medium text-gray-500">Total Applications</p>
-              <p className="text-2xl font-bold">{checklists.length}</p>
+              <p className="text-2xl font-bold">{safeChecklists.length}</p>
             </div>
           </CardContent>
         </Card>
@@ -104,24 +107,36 @@ export default function DashboardOverview() {
             <CardDescription>Your most recent visa application checklists.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {checklists.length === 0 ? (
+            {safeChecklists.length === 0 ? (
               <p className="text-sm text-gray-500">You haven't started any applications yet.</p>
             ) : (
-              checklists.slice(0, 5).map((checklist) => (
-                <div key={checklist.id} className="flex items-center justify-between rounded-lg border p-4 shadow-sm hover:border-[var(--color-primary)] transition-colors">
-                  <div className="space-y-1">
-                    <p className="font-medium">{checklist.visa_type.name} - {checklist.visa_type.country.name}</p>
-                    <p className="text-xs text-gray-500">Target Date: {checklist.target_date || "Not set"}</p>
-                    <div className="flex items-center gap-2 mt-2">
-                      <ProgressBar value={checklist.completion_percentage || 0} className="w-24" />
-                      <span className="text-xs font-medium text-gray-500">{checklist.completion_percentage || 0}%</span>
+              safeChecklists.slice(0, 5).map((checklist) => {
+                const config = statusConfig[checklist.status] ?? statusConfig.in_progress;
+                return (
+                  <Link href={`/dashboard/applications/${checklist.id}`} key={checklist.id}>
+                    <div className="flex items-center justify-between rounded-lg border p-4 shadow-sm hover:border-[var(--color-primary)] transition-colors cursor-pointer">
+                      <div className="space-y-1">
+                        <p className="font-medium">{checklist.visa_type?.name ?? 'Unknown Visa'} - {checklist.visa_type?.country?.name ?? 'Unknown'}</p>
+                        <p className="text-xs text-gray-500">
+                          Target Date:{' '}
+                          {checklist.target_date
+                            ? new Date(checklist.target_date).toLocaleDateString('en-GB', {
+                                day: 'numeric', month: 'short', year: 'numeric'
+                              })
+                            : 'Not set'}
+                        </p>
+                        <div className="flex items-center gap-2 mt-2">
+                          <ProgressBar value={checklist.completion_percentage || 0} className="w-24" />
+                          <span className="text-xs font-medium text-gray-500">{checklist.completion_percentage || 0}%</span>
+                        </div>
+                      </div>
+                      <span className={`text-xs font-medium px-2 py-1 rounded-full ${config.className}`}>
+                        {config.label}
+                      </span>
                     </div>
-                  </div>
-                  <Badge variant={checklist.status === "COMPLETED" ? "success" : "warning"}>
-                    {checklist.status}
-                  </Badge>
-                </div>
-              ))
+                  </Link>
+                );
+              })
             )}
           </CardContent>
         </Card>

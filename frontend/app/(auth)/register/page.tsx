@@ -14,10 +14,11 @@ export default function RegisterPage() {
   
   const [formData, setFormData] = useState({
     email: "",
+    username: "",
+    nationality: "",
+    phone: "",
     password: "",
-    first_name: "",
-    last_name: "",
-    phone_number: "",
+    password2: "",
   });
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -37,7 +38,12 @@ export default function RegisterPage() {
     } catch (err: any) {
       if (err.errors) {
         // Handle validation errors from backend
-        const messages = Object.values(err.errors).flat().join(" ");
+        let messages = "";
+        if (typeof err.errors === "object") {
+           messages = Object.entries(err.errors).map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(" ") : v}`).join(" | ");
+        } else {
+           messages = err.errors.toString();
+        }
         setError(messages || "Failed to register.");
       } else {
         setError(err.message || "An unexpected error occurred.");
@@ -63,27 +69,27 @@ export default function RegisterPage() {
             )}
             <div className="grid grid-cols-2 gap-4">
               <Input
-                label="First Name"
-                name="first_name"
-                placeholder="John"
-                value={formData.first_name}
+                label="Username"
+                name="username"
+                placeholder="johndoe"
+                value={formData.username}
                 onChange={handleChange}
                 required
               />
               <Input
-                label="Last Name"
-                name="last_name"
-                placeholder="Doe"
-                value={formData.last_name}
+                label="Nationality"
+                name="nationality"
+                placeholder="US"
+                value={formData.nationality}
                 onChange={handleChange}
                 required
               />
             </div>
             <Input
               label="Phone Number"
-              name="phone_number"
+              name="phone"
               placeholder="+1234567890"
-              value={formData.phone_number}
+              value={formData.phone}
               onChange={handleChange}
             />
             <Input
@@ -101,6 +107,15 @@ export default function RegisterPage() {
               type="password"
               placeholder="••••••••"
               value={formData.password}
+              onChange={handleChange}
+              required
+            />
+            <Input
+              label="Confirm Password"
+              name="password2"
+              type="password"
+              placeholder="••••••••"
+              value={formData.password2}
               onChange={handleChange}
               required
             />

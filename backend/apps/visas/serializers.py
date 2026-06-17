@@ -32,6 +32,14 @@ class CountryListSerializer(serializers.ModelSerializer):
         fields = ["id", "name", "code", "flag_emoji"]
 
 
+class VisaTypeNestedSerializer(serializers.ModelSerializer):
+    country = CountryListSerializer(read_only=True)
+
+    class Meta:
+        model = VisaType
+        fields = ["id", "name", "country"]
+
+
 class CountryDetailSerializer(serializers.ModelSerializer):
 
     visa_types = VisaTypeListSerializer(many=True, read_only=True)

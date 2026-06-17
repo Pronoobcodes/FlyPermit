@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Loader2, ArrowLeft, CheckCircle2, Circle, Clock } from "lucide-react";
 import Link from "next/link";
+import { statusConfig } from "@/lib/statusConfig";
 
 export default function ChecklistDetail() {
   const { id } = useParams();
@@ -44,8 +45,9 @@ export default function ChecklistDetail() {
       );
       const completedCount = newItems.filter((i: any) => i.status === "have_it").length;
       const completion_percentage = Math.round((completedCount / newItems.length) * 100);
+      const newChecklistStatus = completion_percentage === 100 ? "completed" : "in_progress";
       
-      return { ...prev, items: newItems, completion_percentage };
+      return { ...prev, items: newItems, completion_percentage, status: newChecklistStatus };
     });
 
     try {
@@ -58,6 +60,17 @@ export default function ChecklistDetail() {
       // Revert on error
       fetchChecklist();
       alert("Failed to update item status");
+    }
+  };
+
+  const handleUpdateTargetDate = async (date: string) => {
+    try {
+      await api.patch(`/checklists/user-checklists/${checklist.id}/`, {
+        target_date: date || null
+      });
+      setChecklist((prev: any) => ({ ...prev, target_date: date }));
+    } catch (err) {
+      alert("Failed to update target date");
     }
   };
 
@@ -80,7 +93,7 @@ export default function ChecklistDetail() {
     );
   }
 
-  const isCompleted = checklist.completion_percentage === 100;
+  const config = statusConfig[checklist.status] ?? statusConfig.in_progress;
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
@@ -91,18 +104,27 @@ export default function ChecklistDetail() {
           </Button>
         </Link>
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-gray-900">{checklist.visa_type_name}</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-gray-900">{checklist.visa_type_name ?? checklist.visa_type?.name}</h1>
           <p className="text-sm text-gray-500">Created on {new Date(checklist.created_at).toLocaleDateString()}</p>
         </div>
         <div className="ml-auto">
-          <Badge variant={isCompleted ? "success" : "warning"} className="text-sm px-3 py-1">
-            {isCompleted ? "Completed" : "In Progress"}
-          </Badge>
+          <span className={`text-xs font-medium px-3 py-1 rounded-full ${config.className}`}>
+            {config.label}
+          </span>
         </div>
       </div>
 
       <Card>
         <CardContent className="p-6">
+          <div className="flex items-center gap-2 mb-4 border-b pb-4">
+            <label className="text-sm font-medium text-gray-700">Target Travel Date:</label>
+            <input
+              type="date"
+              value={checklist.target_date ?? ''}
+              onChange={(e) => handleUpdateTargetDate(e.target.value)}
+              className="text-sm border rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+            />
+          </div>
           <div className="flex items-center justify-between mb-2">
             <h3 className="font-medium text-gray-900">Application Progress</h3>
             <span className="text-sm font-bold text-[var(--color-primary)]">{checklist.completion_percentage}%</span>
@@ -140,8 +162,11 @@ export default function ChecklistDetail() {
                     <h4 className={`font-semibold ${isDone ? "text-emerald-900 line-through opacity-70" : "text-gray-900"}`}>
                       {item.document_name}
                     </h4>
+                    {item.document_description && (
+                      <p className="text-sm text-gray-600 mt-1">{item.document_description}</p>
+                    )}
                     {item.user_note && (
-                      <p className="text-sm text-gray-500 mt-1">{item.user_note}</p>
+                      <p className="text-sm text-gray-500 mt-2 italic">{item.user_note}</p>
                     )}
                   </div>
 

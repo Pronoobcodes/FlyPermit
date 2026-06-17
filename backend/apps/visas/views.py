@@ -1,5 +1,6 @@
 from rest_framework.viewsets import ReadOnlyModelViewSet
 from rest_framework.response import Response
+from rest_framework.permissions import AllowAny
 
 from .filter import VisaTypeFilter
 from .models import Country, VisaType, DocumentRequirement
@@ -10,6 +11,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 
 
 class CountryViewSet(ReadOnlyModelViewSet):
+    permission_classes = [AllowAny]
     def get_queryset(self):
         if self.action == "retrieve":
             return Country.objects.prefetch_related('visa_types')
@@ -31,6 +33,7 @@ class CountryViewSet(ReadOnlyModelViewSet):
     
 
 class VisaTypeViewSet(ReadOnlyModelViewSet):
+    permission_classes = [AllowAny]
     queryset = VisaType.objects.select_related("country").prefetch_related("document_requirements").filter(is_active=True)
     filter_backends = [DjangoFilterBackend]
     filterset_class = VisaTypeFilter
@@ -51,6 +54,7 @@ class VisaTypeViewSet(ReadOnlyModelViewSet):
     
 
 class DocumentRequirementViewSet(ReadOnlyModelViewSet):
+    permission_classes = [AllowAny]
     queryset = DocumentRequirement.objects.select_related("visa_type","visa_type__country")
     serializer_class = DocumentRequirementSerializer
 

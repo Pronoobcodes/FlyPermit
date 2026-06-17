@@ -13,6 +13,7 @@ class UserChecklist(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='checklists')
     visa_type = models.ForeignKey(VisaType, on_delete=models.CASCADE, related_name='user_checklists')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='in_progress')
+    target_date = models.DateField(null=True, blank=True)
     notes = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -23,6 +24,18 @@ class UserChecklist(models.Model):
 
     def __str__(self):
         return f"{self.user.email} — {self.visa_type}"
+
+    def sync_status(self):
+        total = self.items.count()
+        completed = self.items.filter(status='have_it').count()
+        if total == 0:
+            return
+        if completed == total and self.status != 'completed':
+            self.status = 'completed'
+            self.save(update_fields=['status'])
+        elif completed < total and self.status == 'completed':
+            self.status = 'in_progress'
+            self.save(update_fields=['status'])
 
     @property
     def completion_percentage(self):

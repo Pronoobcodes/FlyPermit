@@ -14,6 +14,7 @@ from .services import create_checklist_items
 class UserChecklistViewSet(viewsets.ModelViewSet):
     serializer_class = UserChecklistSerializer
     permission_classes = [IsAuthenticated, IsChecklistOwner]
+    http_method_names = ['get', 'post', 'patch', 'delete', 'head', 'options']
 
     def get_queryset(self):
         total_count = Count('items')
@@ -22,30 +23,41 @@ class UserChecklistViewSet(viewsets.ModelViewSet):
             total_items=total_count,
             completed_items=completed_count
         ).annotate(
-            completion_percentage=Case(
+            completion_pct=Case(
                 When(total_items=0, then=Value(0.0)),
                 default=Cast('completed_items', FloatField()) / Cast('total_items', FloatField()) * 100,
                 output_field=FloatField()
             )
-        ).select_related('visa_type').prefetch_related('items', 'items__document')
-
-    def perform_create(self, serializer):
-        checklist = serializer.save(user=self.request.user)
-        create_checklist_items(checklist)
+        ).select_related('visa_type').prefetch_related('items', 'items__document').order_by('-created_at')
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
-        # Fetch the created checklist with annotated completion percentage
-        checklist = self.get_queryset().get(id=serializer.data['id'])
-        response_serializer = self.get_serializer(checklist)
+
+        visa_type_id = serializer.validated_data.get('visa_type').id
+        checklist, created = UserChecklist.objects.get_or_create(
+            user=request.user,
+            visa_type_id=visa_type_id,
+            defaults=serializer.validated_data
+        )
+
+        if created:
+            create_checklist_items(checklist)
+            message = 'Checklist created successfully.'
+            status_code = status.HTTP_201_CREATED
+        else:
+            message = 'Checklist already exists. Resuming application.'
+            status_code = status.HTTP_200_OK
+
+        # Fetch the checklist with annotated completion percentage
+        annotated_checklist = self.get_queryset().get(id=checklist.id)
+        response_serializer = self.get_serializer(annotated_checklist)
+
         return Response({
             'success': True,
-            'message': 'Checklist created successfully.',
+            'message': message,
             'data': response_serializer.data
-        }, status=status.HTTP_201_CREATED, headers=headers)
+        }, status=status_code)
 
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -116,6 +128,11 @@ class ChecklistItemViewSet(mixins.ListModelMixin,
         serializer = self.get_serializer(instance, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
+        
+        # Refresh and sync checklist status AFTER the save completes fully
+        instance.refresh_from_db()
+        instance.checklist.sync_status()
+        
         return Response({
             'success': True,
             'message': 'Checklist item updated successfully.',
