@@ -159,14 +159,38 @@ export default function ChecklistDetail() {
                   </button>
                   
                   <div className="flex-1">
-                    <h4 className={`font-semibold ${isDone ? "text-emerald-900 line-through opacity-70" : "text-gray-900"}`}>
+                    <p className={`font-medium ${item.is_completed ? 'line-through text-gray-400' : ''}`}>
                       {item.document_name}
-                    </h4>
-                    {item.document_description && (
-                      <p className="text-sm text-gray-600 mt-1">{item.document_description}</p>
+                      {item.importance === 'mandatory' && (
+                        <span className="ml-2 text-xs bg-red-100 text-red-600 px-1.5 py-0.5 rounded">Required</span>
+                      )}
+                      {item.importance === 'optional' && (
+                        <span className="ml-2 text-xs bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded">Optional</span>
+                      )}
+                      {item.importance === 'conditional' && (
+                        <span className="ml-2 text-xs bg-yellow-100 text-yellow-700 px-1.5 py-0.5 rounded">Conditional</span>
+                      )}
+                    </p>
+                    {item.description && (
+                      <p className="text-sm text-gray-500 mt-0.5">{item.description}</p>
                     )}
-                    {item.user_note && (
-                      <p className="text-sm text-gray-500 mt-2 italic">{item.user_note}</p>
+                    {item.sample_description && (
+                      <p className="text-sm text-blue-600 mt-1 bg-blue-50 rounded px-2 py-1">
+                        💡 {item.sample_description}
+                      </p>
+                    )}
+                    {item.condition_note && (
+                      <p className="text-xs text-yellow-700 mt-1 italic">⚠️ {item.condition_note}</p>
+                    )}
+                    {item.official_source_url && (
+                      <a
+                        href={item.official_source_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs text-green-600 hover:underline mt-1 inline-block"
+                      >
+                        🔗 Official source
+                      </a>
                     )}
                   </div>
 

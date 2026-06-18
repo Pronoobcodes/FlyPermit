@@ -13,10 +13,42 @@ DATA = [
     {
         "country": {"name": "United Kingdom", "code": "GBR", "flag_emoji": "🇬🇧"},
         "visa_type": {
+            "name": "UK Business Visitor Visa",
+            "category": "business",
+            "processing_time": "3–6 weeks",
+            "fee_usd": "115.00",
+            "tips": "Required for attending conferences, meetings, or training. Ensure you have an invitation letter from the UK company.",
+            "validity": "6 months",
+            "description": "The Business Visitor Visa allows Nigerian nationals to visit the UK for short-term business activities like conferences or meetings."
+        },
+        "documents": [
+            {
+                "name": "Valid International Passport",
+                "description": "Current passport with at least one blank page and 6 months validity.",
+                "icon_category": "passport",
+                "importance": "mandatory",
+                "sample_description": "Must not be damaged. Include old passports to show travel history.",
+                "common_mistakes": "Providing a passport expiring soon.",
+                "official_source_url": "https://www.gov.uk/standard-visitor/apply-standard-visitor-visa"
+            },
+            {
+                "name": "Invitation Letter",
+                "description": "Letter from the UK host company detailing the purpose and duration of the trip.",
+                "icon_category": "employment",
+                "importance": "mandatory",
+                "sample_description": "Must be on company letterhead, signed, and specify if they are covering your expenses.",
+                "common_mistakes": "Missing contact details of the UK host or vague event description."
+            }
+        ]
+    },
+    {
+        "country": {"name": "United Kingdom", "code": "GBR", "flag_emoji": "🇬🇧"},
+        "visa_type": {
             "name": "UK Standard Visitor Visa",
             "category": "tourist",
             "processing_time": "3–6 weeks",
             "fee_usd": "115.00",
+            "tips": "Fee is typically paid online in USD. Expect to pay around ₦172,500 based on black market rates. Avoid using new bank accounts.",
             "validity": "6 months",
             "description": (
                 "The Standard Visitor Visa allows Nigerian nationals to visit the UK for tourism, "
@@ -133,6 +165,7 @@ DATA = [
             "category": "tourist",
             "processing_time": "3–6 months (interview wait times are long in Lagos)",
             "fee_usd": "185.00",
+            "tips": "The MRV fee must be paid at GTBank or via their online platform. It costs exactly ₦231,250 depending on the embassy exchange rate (currently ~1,250 NGN/USD).",
             "validity": "10 years (multiple entry, up to 6 months per visit)",
             "description": (
                 "The B-1/B-2 is the standard US tourist and business visitor visa for Nigerian nationals. "
