@@ -160,7 +160,7 @@ export default function ChecklistDetail() {
                   
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <p className={`font-medium ${item.is_completed ? 'line-through text-gray-400' : 'text-gray-800'}`}>
+                      <p className={`font-medium ${isDone ? 'line-through text-gray-400' : 'text-gray-800'}`}>
                         {item.document_name}
                       </p>
                       {item.document_importance === 'mandatory' && (

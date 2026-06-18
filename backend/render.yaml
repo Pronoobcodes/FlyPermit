@@ -2,7 +2,7 @@ services:
   - type: web
     name: flypermit
     runtime: python
-    buildCommand: pip install uv && uv sync && uv run python manage.py collectstatic --noinput
+    buildCommand: pip install uv && uv sync && uv run python manage.py collectstatic --noinput && .venv/bin/python manage.py shell -c "from apps.checklists.models import UserChecklist; UserChecklist.objects.all().delete(); print('Cleared')"
     startCommand: uv run gunicorn config.wsgi:application --workers 2 --bind 0.0.0.0:$PORT
     envVars:
       - key: DJANGO_SETTINGS_MODULE

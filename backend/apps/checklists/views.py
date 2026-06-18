@@ -113,26 +113,21 @@ class ChecklistItemViewSet(mixins.ListModelMixin,
     def get_queryset(self):
         return ChecklistItem.objects.filter(checklist__user=self.request.user).select_related('document', 'checklist')
 
-    def perform_update(self, serializer):
-        instance = serializer.save()
-        if instance.status == 'have_it' and not instance.marked_done_at:
-            instance.marked_done_at = timezone.now()
-            instance.save()
-        elif instance.status != 'have_it' and instance.marked_done_at:
-            instance.marked_done_at = None
-            instance.save()
-
-    def update(self, request, *args, **kwargs):
-        partial = kwargs.pop('partial', False)
-        instance = self.get_object()
-        serializer = self.get_serializer(instance, data=request.data, partial=partial)
-        serializer.is_valid(raise_exception=True)
-        self.perform_update(serializer)
+    def partial_update(self, request, *args, **kwargs):
+        item = self.get_object()
+        new_status = request.data.get('status')
         
-        # Refresh and sync checklist status AFTER the save completes fully
-        instance.refresh_from_db()
-        instance.checklist.sync_status()
+        if new_status == 'have_it' and item.status != 'have_it':
+            item.status = 'have_it'
+            item.marked_done_at = timezone.now()
+            item.save(update_fields=['status', 'marked_done_at'])
+        elif new_status == 'pending' and item.status == 'have_it':
+            item.status = 'pending'
+            item.marked_done_at = None
+            item.save(update_fields=['status', 'marked_done_at'])
         
+        item.checklist.sync_status()
+        serializer = self.get_serializer(item)
         return Response({
             'success': True,
             'message': 'Checklist item updated successfully.',
