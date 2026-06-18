@@ -158,36 +158,44 @@ export default function ChecklistDetail() {
                     {isDone ? <CheckCircle2 className="h-8 w-8" /> : <Circle className="h-8 w-8" />}
                   </button>
                   
-                  <div className="flex-1">
-                    <p className={`font-medium ${item.is_completed ? 'line-through text-gray-400' : ''}`}>
-                      {item.document_name}
-                      {item.importance === 'mandatory' && (
-                        <span className="ml-2 text-xs bg-red-100 text-red-600 px-1.5 py-0.5 rounded">Required</span>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className={`font-medium ${item.is_completed ? 'line-through text-gray-400' : 'text-gray-800'}`}>
+                        {item.document_name}
+                      </p>
+                      {item.document_importance === 'mandatory' && (
+                        <span className="text-xs bg-red-100 text-red-600 px-1.5 py-0.5 rounded-full">Required</span>
                       )}
-                      {item.importance === 'optional' && (
-                        <span className="ml-2 text-xs bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded">Optional</span>
+                      {item.document_importance === 'optional' && (
+                        <span className="text-xs bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded-full">Optional</span>
                       )}
-                      {item.importance === 'conditional' && (
-                        <span className="ml-2 text-xs bg-yellow-100 text-yellow-700 px-1.5 py-0.5 rounded">Conditional</span>
+                      {item.document_importance === 'conditional' && (
+                        <span className="text-xs bg-yellow-100 text-yellow-700 px-1.5 py-0.5 rounded-full">Conditional</span>
                       )}
-                    </p>
-                    {item.description && (
-                      <p className="text-sm text-gray-500 mt-0.5">{item.description}</p>
+                    </div>
+
+                    {item.document_description && (
+                      <p className="text-sm text-gray-500 mt-0.5">{item.document_description}</p>
                     )}
-                    {item.sample_description && (
-                      <p className="text-sm text-blue-600 mt-1 bg-blue-50 rounded px-2 py-1">
-                        💡 {item.sample_description}
+
+                    {item.document_sample && (
+                      <div className="text-sm text-blue-700 bg-blue-50 border border-blue-100 rounded px-3 py-2 mt-1">
+                        💡 <span className="font-medium">What to prepare:</span> {item.document_sample}
+                      </div>
+                    )}
+
+                    {item.document_condition_note && (
+                      <p className="text-xs text-yellow-700 bg-yellow-50 rounded px-2 py-1 mt-1">
+                        ⚠️ {item.document_condition_note}
                       </p>
                     )}
-                    {item.condition_note && (
-                      <p className="text-xs text-yellow-700 mt-1 italic">⚠️ {item.condition_note}</p>
-                    )}
-                    {item.official_source_url && (
+
+                    {item.document_source_url && (
                       <a
-                        href={item.official_source_url}
+                        href={item.document_source_url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-xs text-green-600 hover:underline mt-1 inline-block"
+                        className="text-xs text-green-600 hover:text-green-800 hover:underline mt-1 inline-flex items-center gap-1"
                       >
                         🔗 Official source
                       </a>
