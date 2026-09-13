@@ -4,7 +4,7 @@ from django.db import models
 # Create your models here.
 class User(AbstractUser):
     email = models.EmailField(unique=True)
-    nationality = models.CharField(max_length=100, blank=True, null=True)
+    nationality = models.CharField(max_length=100, default="Nigerian", blank=True, null=True)
     phone = models.CharField(max_length=20, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
