@@ -1,8 +1,6 @@
 # FlyPermit — Visa Checklist Platform
 
-FlyPermit is a modern, responsive web application designed to simplify the visa application process. It provides users with dynamically generated, step-by-step document checklists tailored to specific destinations and visa types. 
-
-By utilizing secure, stateless authentication and an intuitive dashboard, users can easily track their application progress and ensure they never miss a critical requirement.
+[FlyPermit](https://vercel.app) is a modern, responsive web application designed to simplify the visa application process. It provides users with dynamically generated, step-by-step document checklists tailored to specific destinations and visa types. By utilizing secure, stateless authentication and an intuitive dashboard, users can easily track their application progress and ensure they never miss a critical requirement.
 
 ---
 
@@ -16,6 +14,7 @@ By utilizing secure, stateless authentication and an intuitive dashboard, users 
 
 **Frontend (Web Application):**
 - **Framework:** Next.js 15 (App Router)
+- **Deployment & Hosting:** Live on [Vercel](https://vercel.app)
 - **Styling:** Tailwind CSS (Vanilla CSS variables for robust theming)
 - **State Management:** Zustand
 - **HTTP Client:** Axios
@@ -35,7 +34,7 @@ By utilizing secure, stateless authentication and an intuitive dashboard, users 
 
 ## 🚀 Getting Started
 
-Follow the steps below to run both the backend and frontend development servers on your local machine.
+Follow the steps below to run both the backend and frontend development servers on your local machine, or view the live site on [Vercel](https://vercel.app).
 
 ### Prerequisites
 - Python 3.10+
@@ -44,7 +43,6 @@ Follow the steps below to run both the backend and frontend development servers 
 ---
 
 ### 1. Backend Setup
-
 Open a terminal and navigate to the `backend` directory:
 ```bash
 cd backend
@@ -53,10 +51,8 @@ cd backend
 **Create and activate a virtual environment:**
 ```bash
 python -m venv venv
-# On Windows:
-venv\Scripts\activate
-# On macOS/Linux:
-source venv/bin/activate
+# On Windows: venv\Scripts\activate
+# On macOS/Linux: source venv/bin/activate
 ```
 
 **Install dependencies:**
@@ -77,13 +73,12 @@ ALLOWED_HOSTS=127.0.0.1,localhost
 python manage.py migrate
 python manage.py runserver
 ```
-*The backend API will be available at `http://127.0.0.1:8000/`*
-*API Swagger Documentation: `http://127.0.0.1:8000/api/schema/swagger-ui/`*
+*The backend API will be available at `http://127.0.0`*
+*API Swagger Documentation: `http://127.0.0api/schema/swagger-ui/`*
 
 ---
 
 ### 2. Frontend Setup
-
 Open a new terminal window and navigate to the `frontend` directory:
 ```bash
 cd frontend
@@ -98,19 +93,25 @@ npm install
 ```bash
 npm run dev
 ```
-*The frontend application will be available at `http://localhost:3000/`*
+*The local frontend application will be available at `http://localhost:3000/`*
+*The production build is deployed at [FlyPermit on Vercel](https://vercel.app)*
 
 ---
 
 ## 🏗 Architecture Overview
 
 **Authentication Flow:**
-To maximize security, the frontend client *never* accesses the JWT tokens directly. 
+To maximize security, the frontend client *never* accesses the JWT tokens directly.
+
 1. When a user logs in via the client, the request is sent to a Next.js server-side route handler (`/api/accounts/login/`).
 2. The Next.js handler proxies the request to the Django backend.
 3. Django returns the `access` and `refresh` tokens to Next.js.
 4. Next.js sets these tokens as secure, `httpOnly` cookies on the user's browser.
 5. For all subsequent requests, Axios hits the Next.js proxy (`/api/*`), which intercepts the request, extracts the cookies, attaches the `Bearer` token, and proxies the request to Django. It automatically handles token refresh if an `access_token` is expired.
 
+---
+
 ## 📝 License
+
 This project is for demonstration and MVP purposes.
+
